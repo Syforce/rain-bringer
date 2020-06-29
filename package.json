@@ -1,0 +1,20 @@
+{
+    "name": "rain-bringer",
+    "version": "0.0.1",
+    "scripts": {
+        "watch": "nodemon"
+    },
+    "dependencies": {
+        "cloudinary": "^1.21.0",
+        "fluent-ffmpeg": "^2.1.2",
+        "ice-container": "0.0.13",
+        "rock-gather": "0.0.6",
+        "waterfall-gate": "0.0.15"
+    },
+    "devDependencies": {
+        "@types/node": "^13.9.5",
+        "nodemon": "^2.0.2",
+        "ts-node": "^8.8.1",
+        "typescript": "^3.8.3"
+    }
+}

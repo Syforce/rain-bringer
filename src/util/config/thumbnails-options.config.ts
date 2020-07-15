@@ -3,4 +3,6 @@ export interface ThumbnailsConfig {
 	maxHeight: number;
 	count: number;
 	queueLimit: number;
+	start: number;
+	end: number;
 }

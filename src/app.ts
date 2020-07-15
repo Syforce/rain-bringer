@@ -19,7 +19,7 @@ class App {
 	private storageService: StorageService;
 
 	constructor() {
-		this.init();
+        this.init();
 	}
 
 	private init() {

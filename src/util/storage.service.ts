@@ -26,6 +26,7 @@ export class StorageService {
 	}
 
 	public uploadLarge(path: string): Promise<string> {
+        console.log(path);
 		return new Promise((resolve, fail) => {
 			Cloudinary.uploader.upload_large(path, {
 				resource_type: 'video'

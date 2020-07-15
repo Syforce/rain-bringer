@@ -4,6 +4,7 @@ import { FileStorageConfig } from 'rock-gather';
 
 import { StorageConfig } from './util/storage.service';
 import { ThumbnailsConfig } from './util/config/thumbnails-options.config';
+import { RequestConfig } from './util/config/request-config';
 
 const databaseConfig: ConnectionConfig = {
 	host: process.env.MONGO_HQ || 'mongodb://localhost/bringer'
@@ -28,13 +29,21 @@ const thumbnailConfig: ThumbnailsConfig = {
 	maxWidth: 300,
 	maxHeight: 300,
 	count: 30,
-	queueLimit: 2
+    queueLimit: 2,
+    start: 2,
+    end: 5,
 };
+
+const requestConfig: RequestConfig = {
+    hostname: 'localhost',
+    port: 8111,
+}
 
 export const CONFIG = {
 	server: serverConfig,
 	database: databaseConfig,
 	fileStorage: fileConfig,
 	storage: storageConfig,
-	thumbnailConfig: thumbnailConfig
+    thumbnailConfig: thumbnailConfig,
+    request: requestConfig,
 };

@@ -1,5 +1,7 @@
 import * as fluent from 'fluent-ffmpeg';
 import { request } from 'http';
+import { join } from 'path';
+import { readdir, unlink } from 'fs';
 
 import { StorageService } from './storage.service';
 import { ConvertService } from './convert.service';
@@ -79,8 +81,18 @@ export class QueueService {
 							thumbnailsPath.push(await this.storageService.upload(thumbnails[i]));
 						}
 
-						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, '');
-
+                        await this.createVideo(queue, videoPath, previewPath, thumbnailsPath, '');
+                        readdir(join(process.cwd(), '\\uploads'), (err, files) => {
+                            if (err) console.log(err);
+                
+                            for (const file of files) {
+                                unlink(process.cwd() + '\\uploads\\' + file, (err) => {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                });
+                            }
+                        });
 						// const video: Video = VideoParser.parserConvertedVideo(convertedFile, previewOptions, queue);
 						// if (!video.url) {
 						// 	// this.deleteTempFiles([queue.fileName]);
@@ -128,10 +140,10 @@ export class QueueService {
 			count: CONFIG.thumbnailConfig.count
 		}
 		const previewOptions: PreviewOptions = {
-			startPreview: 3,
+			startPreview: CONFIG.thumbnailConfig.start,
 			maxWidth: CONFIG.thumbnailConfig.maxWidth,
 			maxHeight: CONFIG.thumbnailConfig.maxHeight,
-			endPreview: 6,
+			endPreview: CONFIG.thumbnailConfig.end,
 		}
 		return {
 			fileName,
@@ -153,17 +165,17 @@ export class QueueService {
 		});
 
 		const req = request({
-			hostname: 'localhost',
-			port: 8001,
+			hostname: CONFIG.request.hostname,
+			port: CONFIG.request.port,
 			path: '/api/video',
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Content-Length': data.length
+                'Content-Length': data.length
 			}
 		});
 
-		req.write(data);
-		req.end();
+        req.write(data);
+        req.end();
 	}
 }

@@ -19,7 +19,7 @@ class App {
 	private storageService: StorageService;
 
 	constructor() {
-        this.init();
+		this.init();
 	}
 
 	private init() {
@@ -38,7 +38,7 @@ class App {
 		// this.iceContainerService.registerDatastore(QueueDatastore);
 
 		this.iceContainerService.init(CONFIG.database);
-    }
+	}
 
 	private startStorage() {
 		this.rockGatherService.init(CONFIG.fileStorage);
@@ -49,7 +49,7 @@ class App {
 		this.waterfallGateService.registerRouter(QueueRouter);
 
 		this.waterfallGateService.init(CONFIG.server);
-    }
+	}
 }
 
 export default new App().app;

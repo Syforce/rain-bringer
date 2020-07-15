@@ -1,4 +1,4 @@
 export interface RequestConfig {
-    hostname: string;
+	hostname: string;
 	port: number;
 }

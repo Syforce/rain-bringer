@@ -29,14 +29,14 @@ const thumbnailConfig: ThumbnailsConfig = {
 	maxWidth: 300,
 	maxHeight: 300,
 	count: 30,
-    queueLimit: 2,
-    start: 2,
-    end: 5,
+	queueLimit: 2,
+	start: 2,
+	end: 5,
 };
 
 const requestConfig: RequestConfig = {
-    hostname: 'localhost',
-    port: 8111,
+	hostname: 'localhost',
+	port: 8111,
 }
 
 export const CONFIG = {
@@ -44,6 +44,6 @@ export const CONFIG = {
 	database: databaseConfig,
 	fileStorage: fileConfig,
 	storage: storageConfig,
-    thumbnailConfig: thumbnailConfig,
-    request: requestConfig,
+	thumbnailConfig: thumbnailConfig,
+	request: requestConfig,
 };

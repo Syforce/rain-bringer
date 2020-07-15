@@ -81,18 +81,18 @@ export class QueueService {
 							thumbnailsPath.push(await this.storageService.upload(thumbnails[i]));
 						}
 
-                        await this.createVideo(queue, videoPath, previewPath, thumbnailsPath, '');
-                        readdir(join(process.cwd(), '\\uploads'), (err, files) => {
-                            if (err) console.log(err);
-                
-                            for (const file of files) {
-                                unlink(process.cwd() + '\\uploads\\' + file, (err) => {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                });
-                            }
-                        });
+						await this.createVideo(queue, videoPath, previewPath, thumbnailsPath, '');
+						readdir(join(process.cwd(), '\\uploads'), (err, files) => {
+							if (err) console.log(err);
+				
+							for (const file of files) {
+								unlink(process.cwd() + '\\uploads\\' + file, (err) => {
+									if (err) {
+										console.log(err);
+									}
+								});
+							}
+						});
 						// const video: Video = VideoParser.parserConvertedVideo(convertedFile, previewOptions, queue);
 						// if (!video.url) {
 						// 	// this.deleteTempFiles([queue.fileName]);
@@ -171,11 +171,11 @@ export class QueueService {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-                'Content-Length': data.length
+				'Content-Length': data.length
 			}
 		});
 
-        req.write(data);
-        req.end();
+		req.write(data);
+		req.end();
 	}
 }

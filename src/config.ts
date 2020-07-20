@@ -5,6 +5,7 @@ import { FileStorageConfig } from 'rock-gather';
 import { StorageConfig } from './util/storage.service';
 import { ThumbnailsConfig } from './util/config/thumbnails-options.config';
 import { RequestConfig } from './util/config/request-config';
+import { ThreadConfig } from './util/config/thread.config';
 
 const databaseConfig: ConnectionConfig = {
 	host: process.env.MONGO_HQ || 'mongodb://localhost/bringer'
@@ -39,6 +40,10 @@ const requestConfig: RequestConfig = {
 	port: 8111,
 }
 
+const threadConfig: ThreadConfig = {
+	threads: 2,
+}
+
 export const CONFIG = {
 	server: serverConfig,
 	database: databaseConfig,
@@ -46,4 +51,5 @@ export const CONFIG = {
 	storage: storageConfig,
 	thumbnailConfig: thumbnailConfig,
 	request: requestConfig,
+	threadConfig: threadConfig
 };

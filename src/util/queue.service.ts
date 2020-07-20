@@ -39,7 +39,7 @@ export class QueueService {
 
 	private async getNextJob() {
 		try {
-			if (this.jobs.length < 2) {
+			if (this.jobs.length < CONFIG.threadConfig.threads) {
 				const queue: Queue = await this.queueManager.getQueueByProgress();
 
 				if (queue) {
@@ -69,30 +69,33 @@ export class QueueService {
 						// convertedFile[0].screenshots - thumbnails
 						// convertedFile[1].preview - preview
 
+						const original: string = queue.path;
 						const video: string = convertedFile[0].filepath;
 						const thumbnails: Array<string> = convertedFile[0].screenshots;
 						const preview: string = convertedFile[1].preview;
 
-						const videoPath: string = await this.storageService.uploadLarge(video);
-						const previewPath: string = await this.storageService.uploadLarge(preview);
+						const promise1 = this.storageService.uploadLarge(original);
+						const promise2 = this.storageService.uploadLarge(video);
+						const promise3 = this.storageService.uploadLarge(preview);
+						const values = await Promise.all([promise1, promise2, promise3]);
+						const originalPath: string =values[0];
+						const videoPath: string = values[1];
+						const previewPath: string = values[2];
 						const thumbnailsPath: Array<string> = new Array<string>();
 
 						for (let i = 0; i < thumbnails.length; i++) {
 							thumbnailsPath.push(await this.storageService.upload(thumbnails[i]));
 						}
 
-						await this.createVideo(queue, videoPath, previewPath, thumbnailsPath, '');
-						readdir(join(process.cwd(), '\\uploads'), (err, files) => {
-							if (err) console.log(err);
-				
-							for (const file of files) {
-								unlink(process.cwd() + '\\uploads\\' + file, (err) => {
-									if (err) {
-										console.log(err);
-									}
-								});
-							}
-						});
+						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
+
+						this.removeFiles(original, video, preview, thumbnails);
+
+						this.updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath);
+
+						this.jobs.splice(this.jobs.indexOf(queue), 1);
+						this.nextTick();
+
 						// const video: Video = VideoParser.parserConvertedVideo(convertedFile, previewOptions, queue);
 						// if (!video.url) {
 						// 	// this.deleteTempFiles([queue.fileName]);
@@ -128,6 +131,43 @@ export class QueueService {
 		
 	}
 
+	private updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath) {
+		const update = {
+			progress: 100,
+			path: videoPath,
+			original: originalPath,
+			preview: previewPath,
+			thumbnails: thumbnailsPath
+		}
+
+		this.queueManager.updateQueue(queue, update);
+	}
+
+	private removeFiles(original, video, preview, thumbnails) {
+		unlink(video, err => {
+			if (err) {
+				console.log(err);
+			}
+		});
+		unlink(preview, err => {
+			if (err) {
+				console.log(err);
+			}
+		});
+		unlink(original, err => {
+			if (err) {
+				console.log(err);
+			}
+		});
+		thumbnails.forEach(thumbnail => {
+			unlink(thumbnail, err => {
+				if (err) {
+					console.log(err);
+				}
+			});
+		});
+	}
+
 	private getFileDetails(queue) {
 		// console.log(queue);
 		const fileName = queue.path.split('\\').pop().split('.').shift();
@@ -154,12 +194,13 @@ export class QueueService {
 	}
 
 
-	private createVideo(queue: Queue, path: string, preview: string, thumbnails: Array<string>, thumbnail: string) {
+	private createVideo(queue: Queue, path: string, preview: string, thumbnails: Array<string>, original: string , thumbnail: string) {
 		const data = JSON.stringify({
 			path: path,
 			// thumbnail: thumbnail,
 			thumbnails: thumbnails,
 			preview: preview,
+			original: original,
 			talent: queue.talent,
 			title: queue.title
 		});

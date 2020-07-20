@@ -26,6 +26,14 @@ export class QueueManager {
 		}, { progress: 0 });
 	}
 
+	public updateQueue(queue, update): Promise<Queue> {
+		const options = {
+			_id: queue._id
+		};
+
+		return this.queueDatastore.getOneByOptionsAndUpdate(options, update);
+	}
+
 	public async createQueue(item: Queue, file, thumbnail): Promise<Queue> {
 		const filePath: string = file.path;
 		const thumbnailPath: string = thumbnail.path;

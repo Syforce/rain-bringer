@@ -27,7 +27,11 @@ export class QueueManager {
 	}
 
 	public updateQueue(queue, update): Promise<Queue> {
-		return this.queueDatastore.getOneByOptionsAndUpdate(queue, update);
+		const options = {
+			_id: queue._id
+		};
+
+		return this.queueDatastore.getOneByOptionsAndUpdate(options, update);
 	}
 
 	public async createQueue(item: Queue, file, thumbnail): Promise<Queue> {

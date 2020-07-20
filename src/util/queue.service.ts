@@ -39,7 +39,7 @@ export class QueueService {
 
 	private async getNextJob() {
 		try {
-			if (this.jobs.length < CONFIG.threadConfig.nrOfItems) {
+			if (this.jobs.length < CONFIG.threadConfig.threads) {
 				const queue: Queue = await this.queueManager.getQueueByProgress();
 
 				if (queue) {
@@ -74,16 +74,20 @@ export class QueueService {
 						const thumbnails: Array<string> = convertedFile[0].screenshots;
 						const preview: string = convertedFile[1].preview;
 
-						const originalPath: string = await this.storageService.uploadLarge(original);
-						const videoPath: string = await this.storageService.uploadLarge(video);
-						const previewPath: string = await this.storageService.uploadLarge(preview);
+						const promise1 = this.storageService.uploadLarge(original);
+						const promise2 = this.storageService.uploadLarge(video);
+						const promise3 = this.storageService.uploadLarge(preview);
+						const values = await Promise.all([promise1, promise2, promise3]);
+						const originalPath: string =values[0];
+						const videoPath: string = values[1];
+						const previewPath: string = values[2];
 						const thumbnailsPath: Array<string> = new Array<string>();
 
 						for (let i = 0; i < thumbnails.length; i++) {
 							thumbnailsPath.push(await this.storageService.upload(thumbnails[i]));
 						}
 
-						await this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
+						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
 
 						this.removeFiles(original, video, preview, thumbnails);
 
@@ -128,9 +132,6 @@ export class QueueService {
 	}
 
 	private updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath) {
-		const options = {
-			_id: queue._id
-		}
 		const update = {
 			progress: 100,
 			path: videoPath,
@@ -139,7 +140,7 @@ export class QueueService {
 			thumbnails: thumbnailsPath
 		}
 
-		this.queueManager.updateQueue(options, update);
+		this.queueManager.updateQueue(queue, update);
 	}
 
 	private removeFiles(original, video, preview, thumbnails) {
@@ -163,7 +164,7 @@ export class QueueService {
 				if (err) {
 					console.log(err);
 				}
-			})
+			});
 		});
 	}
 

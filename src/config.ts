@@ -41,7 +41,7 @@ const requestConfig: RequestConfig = {
 }
 
 const threadConfig: ThreadConfig = {
-	nrOfItems: 2,
+	threads: 2,
 }
 
 export const CONFIG = {

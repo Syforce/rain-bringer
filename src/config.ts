@@ -41,7 +41,7 @@ const requestConfig: RequestConfig = {
 }
 
 const threadConfig: ThreadConfig = {
-    nrOfItems: 2,
+	nrOfItems: 2,
 }
 
 export const CONFIG = {
@@ -50,6 +50,6 @@ export const CONFIG = {
 	fileStorage: fileConfig,
 	storage: storageConfig,
 	thumbnailConfig: thumbnailConfig,
-    request: requestConfig,
-    threadConfig: threadConfig
+	request: requestConfig,
+	threadConfig: threadConfig
 };

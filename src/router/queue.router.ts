@@ -1,12 +1,12 @@
 import { WaterfallGateService, AbstractRouter, Request } from 'waterfall-gate';
-import { Schema } from 'ice-container';
+
 import { RockGatherService } from 'rock-gather';
 
 import { QueueManager } from '../manager/queue.manager';
 import { QueueService } from '../util/queue.service';
 
 import { Queue } from '../model/queue.model';
-import { listenerCount } from 'process';
+
 import { responseData } from 'src/util/model/responseData.model';
 
 export class QueueRouter extends AbstractRouter {
@@ -48,21 +48,11 @@ export class QueueRouter extends AbstractRouter {
         const sortOrder: number = +request.query.sortOrder;
         
         if (currentPage && itemsPerPage) {
-            let data: responseData = await this.queueManager.getManyByOptions(currentPage, itemsPerPage, sortBy, sortOrder);
-            const jobs: Array<Queue> = this.queueService.getJobs();
+            const data: responseData = await this.queueManager.getQueuesPaginated(currentPage, itemsPerPage, sortBy, sortOrder);
 
-            data.list.forEach(item => {
-                jobs.forEach(job => {
-                    if ((item._id as Schema.ObjectId).equals(job._id)) {
-                        item.progress = job.progress;
-                    }
-                });
-            });
-
-            return data;
+            return this.queueService.applyProgressToJobs(data);
         } else {
-            const list: Array<Queue> = await this.queueManager.getAll();
-            return list;
+            return this.queueManager.getAll();
         }
     }
 

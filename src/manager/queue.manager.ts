@@ -1,10 +1,9 @@
 import { IceContainerService } from 'ice-container';
-import { QueueService } from '../util/queue.service';
 
 import { QueueDatastore } from '../datastore/queue.datastore';
 
 import { Queue } from '../model/queue.model';
-import { ReplOptions } from 'repl';
+
 import { responseData } from 'src/util/model/responseData.model';
 
 export class QueueManager {
@@ -52,7 +51,7 @@ export class QueueManager {
 		return this.queueDatastore.removeAll();
 	}
 	
-	public async getManyByOptions(currentPage: number, itemsPerPage: number, sortBy?: string, sortOrder?: number): Promise<any> {
+	public async getQueuesPaginated(currentPage: number, itemsPerPage: number, sortBy?: string, sortOrder?: number): Promise<any> {
 		const skip = (currentPage - 1) * itemsPerPage;
 		let sortOptions: any;
 

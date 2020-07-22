@@ -1,7 +1,8 @@
 import * as fluent from 'fluent-ffmpeg';
 import { request } from 'http';
-import { join } from 'path';
-import { readdir, unlink, PathLike } from 'fs';
+import { unlink } from 'fs';
+
+import { Schema } from 'ice-container';
 
 import { StorageService } from './storage.service';
 import { ConvertService } from './convert.service';
@@ -13,6 +14,7 @@ import { ThumbnailOptions } from './config/thumbnail-options.config';
 import { PreviewOptions } from './config/preview-options.config';
 
 import { CONFIG } from '../config';
+import { responseData } from './model/responseData.model';
 
 const temDir = CONFIG.fileStorage.destination;
 
@@ -32,13 +34,21 @@ export class QueueService {
 	public static getInstance(): QueueService {
 		return this.instance;
 	}
-	
-	public getJobs(): Array<Queue> {
-		return this.jobs; 
-	}
 
 	public nextTick() {
 		this.getNextJob();
+	}
+
+	public applyProgressToJobs(data: responseData) {
+		data.list.forEach(item => {
+			this.jobs.forEach(job => {
+				if ((item._id as Schema.ObjectId).equals(job._id)) {
+					item.progress = job.progress;
+				}
+			});
+		});
+
+		return data;
 	}
 
 	private async getNextJob() {

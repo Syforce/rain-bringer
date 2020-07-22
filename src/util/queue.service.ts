@@ -1,7 +1,8 @@
 import * as fluent from 'fluent-ffmpeg';
 import { request } from 'http';
-import { join } from 'path';
-import { readdir, unlink } from 'fs';
+import { unlink } from 'fs';
+
+import { Schema } from 'ice-container';
 
 import { StorageService } from './storage.service';
 import { ConvertService } from './convert.service';
@@ -13,12 +14,13 @@ import { ThumbnailOptions } from './config/thumbnail-options.config';
 import { PreviewOptions } from './config/preview-options.config';
 
 import { CONFIG } from '../config';
+import { responseData } from './model/responseData.model';
 
 const temDir = CONFIG.fileStorage.destination;
 
 export class QueueService {
 	private static instance: QueueService = new QueueService();
-	private queueManager: QueueManager = new QueueManager();
+	private queueManager: QueueManager;
 	private storageService: StorageService;
 	private convertService: ConvertService;
 
@@ -27,6 +29,12 @@ export class QueueService {
 	private constructor() {
 		this.storageService = StorageService.getInstance();
 		this.convertService = ConvertService.getInstance();
+
+		// TODO: REMOVE DIRTY FIX, replace with iceContainer.getDatastoreV2
+		setTimeout(() => {
+
+			this.queueManager = new QueueManager();
+		})
 	}
 
 	public static getInstance(): QueueService {
@@ -35,6 +43,18 @@ export class QueueService {
 
 	public nextTick() {
 		this.getNextJob();
+	}
+
+	public applyProgressToJobs(data: responseData) {
+		data.list.forEach(item => {
+			this.jobs.forEach(job => {
+				if ((item._id as Schema.ObjectId).equals(job._id)) {
+					item.progress = job.progress;
+				}
+			});
+		});
+
+		return data;
 	}
 
 	private async getNextJob() {
@@ -89,7 +109,7 @@ export class QueueService {
 
 						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
 
-						this.removeFiles(original, video, preview, thumbnails);
+						this.removeFiles([original, video, preview, thumbnails]);
 
 						this.updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath);
 
@@ -143,28 +163,23 @@ export class QueueService {
 		this.queueManager.updateQueue(queue, update);
 	}
 
-	private removeFiles(original, video, preview, thumbnails) {
-		unlink(video, err => {
-			if (err) {
-				console.log(err);
+	private removeFiles(files: Array<string | Array<string>>) {
+		files.forEach(file => {
+			if (Array.isArray(file)) {
+				file.forEach(elem => {
+					unlink(elem, err => {
+						if (err) {
+							console.log(err);
+						}
+					});
+				})
+			} else {
+				unlink(file, err => {
+					if (err) {
+						console.log(err);
+					}
+				});
 			}
-		});
-		unlink(preview, err => {
-			if (err) {
-				console.log(err);
-			}
-		});
-		unlink(original, err => {
-			if (err) {
-				console.log(err);
-			}
-		});
-		thumbnails.forEach(thumbnail => {
-			unlink(thumbnail, err => {
-				if (err) {
-					console.log(err);
-				}
-			});
 		});
 	}
 

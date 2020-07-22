@@ -12,9 +12,12 @@ export const QueueSchema: Schema = new Schema({
 		type: Number,
 		default: -1
 	}
+}, {
+	timestamps: true
 });
 
 export interface Queue {
+    _id?: string;
 	path: string;
 	thumbnail?: string;
 	original?: string;

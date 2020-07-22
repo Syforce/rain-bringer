@@ -4,6 +4,8 @@ import { QueueDatastore } from '../datastore/queue.datastore';
 
 import { Queue } from '../model/queue.model';
 
+import { responseData } from 'src/util/model/responseData.model';
+
 export class QueueManager {
 	private iceContainerService: IceContainerService;
 	private queueDatastore: QueueDatastore;
@@ -11,9 +13,7 @@ export class QueueManager {
 	constructor() {
 		this.iceContainerService = IceContainerService.getInstance();
 
-		this.iceContainerService.getDatastoreV2(QueueDatastore.name).then((datastore) => {
-			this.queueDatastore = datastore;
-		});
+		this.queueDatastore = this.iceContainerService.getDatastore(QueueDatastore.name) as QueueDatastore;
 	}
 
 	public getAll(): Promise<Array<Queue>> {
@@ -26,7 +26,7 @@ export class QueueManager {
 		}, { progress: 0 });
 	}
 
-	public updateQueue(queue, update): Promise<Queue> {
+	public updateQueue(queue: Queue, update: any): Promise<Queue> {
 		const options = {
 			_id: queue._id
 		};
@@ -47,5 +47,33 @@ export class QueueManager {
 
 	public deleteQueues() {
 		return this.queueDatastore.removeAll();
+	}
+	
+	public async getQueuesPaginated(currentPage: number, itemsPerPage: number, sortBy?: string, sortOrder?: number): Promise<any> {
+		const skip = (currentPage - 1) * itemsPerPage;
+		let sortOptions: any;
+
+		// TODO: SQL Injection Error
+		if (sortBy && sortOrder) {
+			sortOptions = {
+				[sortBy]: sortOrder
+			}
+		}
+
+		const options = {
+			skip: skip,
+			limit: itemsPerPage,
+			sort: sortOptions
+		}
+
+		const list: Array<Queue> = await this.queueDatastore.getUnfinishedQueues(options);
+		const total: number = await this.queueDatastore.countUnfinishedQueues();
+		
+		const data: responseData = {
+			list: list,
+			total: total
+		}
+
+		return data;
 	}
 }

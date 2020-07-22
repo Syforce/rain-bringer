@@ -20,7 +20,7 @@ const temDir = CONFIG.fileStorage.destination;
 
 export class QueueService {
 	private static instance: QueueService = new QueueService();
-	private queueManager: QueueManager = new QueueManager();
+	private queueManager: QueueManager;
 	private storageService: StorageService;
 	private convertService: ConvertService;
 
@@ -29,6 +29,12 @@ export class QueueService {
 	private constructor() {
 		this.storageService = StorageService.getInstance();
 		this.convertService = ConvertService.getInstance();
+
+		// TODO: REMOVE DIRTY FIX, replace with iceContainer.getDatastoreV2
+		setTimeout(() => {
+
+			this.queueManager = new QueueManager();
+		})
 	}
 
 	public static getInstance(): QueueService {

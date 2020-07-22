@@ -13,9 +13,7 @@ export class QueueManager {
 	constructor() {
 		this.iceContainerService = IceContainerService.getInstance();
 
-		this.iceContainerService.getDatastoreV2(QueueDatastore.name).then((datastore) => {
-			this.queueDatastore = datastore;
-		});
+		this.queueDatastore = this.iceContainerService.getDatastore(QueueDatastore.name) as QueueDatastore;
 	}
 
 	public getAll(): Promise<Array<Queue>> {
@@ -28,7 +26,7 @@ export class QueueManager {
 		}, { progress: 0 });
 	}
 
-	public updateQueue(queue, update): Promise<Queue> {
+	public updateQueue(queue: Queue, update: any): Promise<Queue> {
 		const options = {
 			_id: queue._id
 		};
@@ -68,8 +66,8 @@ export class QueueManager {
 			sort: sortOptions
 		}
 
-		const list: Array<Queue> = await this.queueDatastore.getManyByOptions({ progress: { $lt: 100 } }, options);
-		const total: number = await this.queueDatastore.count({progress: { $lt: 100 }});
+		const list: Array<Queue> = await this.queueDatastore.getUnfinishedQueues(options);
+		const total: number = await this.queueDatastore.countUnfinishedQueues();
 		
 		const data: responseData = {
 			list: list,

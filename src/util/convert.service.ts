@@ -128,7 +128,7 @@ export class ConvertService {
                     resolve('REQUEST_ERRORS.ERROR_CONVERTING_FILE');
                 })
                 .on('progress', (progress) => {
-                    queue.progress = Math.floor(progress.percent);
+                    queue.progress = Math.ceil(progress.percent);
                     console.log(queue.progress);
                 })
                 .on('end', () => {

@@ -1,8 +1,11 @@
 import { IceContainerService } from 'ice-container';
+import { QueueService } from '../util/queue.service';
 
 import { QueueDatastore } from '../datastore/queue.datastore';
 
 import { Queue } from '../model/queue.model';
+import { ReplOptions } from 'repl';
+import { responseData } from 'src/util/model/responseData.model';
 
 export class QueueManager {
 	private iceContainerService: IceContainerService;
@@ -47,5 +50,33 @@ export class QueueManager {
 
 	public deleteQueues() {
 		return this.queueDatastore.removeAll();
+	}
+	
+	public async getManyByOptions(currentPage: number, itemsPerPage: number, sortBy?: string, sortOrder?: number): Promise<any> {
+		const skip = (currentPage - 1) * itemsPerPage;
+		let sortOptions: any;
+
+		// TODO: SQL Injection Error
+		if (sortBy && sortOrder) {
+			sortOptions = {
+				[sortBy]: sortOrder
+			}
+		}
+
+		const options = {
+			skip: skip,
+			limit: itemsPerPage,
+			sort: sortOptions
+		}
+
+		const list: Array<Queue> = await this.queueDatastore.getManyByOptions({ progress: { $lt: 100 } }, options);
+		const total: number = await this.queueDatastore.count({progress: { $lt: 100 }});
+		
+		const data: responseData = {
+			list: list,
+			total: total
+		}
+
+		return data;
 	}
 }

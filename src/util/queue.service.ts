@@ -1,7 +1,7 @@
 import * as fluent from 'fluent-ffmpeg';
 import { request } from 'http';
 import { join } from 'path';
-import { readdir, unlink } from 'fs';
+import { readdir, unlink, PathLike } from 'fs';
 
 import { StorageService } from './storage.service';
 import { ConvertService } from './convert.service';
@@ -31,6 +31,10 @@ export class QueueService {
 
 	public static getInstance(): QueueService {
 		return this.instance;
+	}
+	
+	public getJobs(): Array<Queue> {
+		return this.jobs; 
 	}
 
 	public nextTick() {
@@ -89,7 +93,7 @@ export class QueueService {
 
 						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
 
-						this.removeFiles(original, video, preview, thumbnails);
+						this.removeFiles([original, video, preview, thumbnails]);
 
 						this.updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath);
 
@@ -143,28 +147,23 @@ export class QueueService {
 		this.queueManager.updateQueue(queue, update);
 	}
 
-	private removeFiles(original, video, preview, thumbnails) {
-		unlink(video, err => {
-			if (err) {
-				console.log(err);
+	private removeFiles(files: Array<string | Array<string>>) {
+		files.forEach(file => {
+			if (Array.isArray(file)) {
+				file.forEach(elem => {
+					unlink(elem, err => {
+						if (err) {
+							console.log(err);
+						}
+					});
+				})
+			} else {
+				unlink(file, err => {
+					if (err) {
+						console.log(err);
+					}
+				});
 			}
-		});
-		unlink(preview, err => {
-			if (err) {
-				console.log(err);
-			}
-		});
-		unlink(original, err => {
-			if (err) {
-				console.log(err);
-			}
-		});
-		thumbnails.forEach(thumbnail => {
-			unlink(thumbnail, err => {
-				if (err) {
-					console.log(err);
-				}
-			});
 		});
 	}
 

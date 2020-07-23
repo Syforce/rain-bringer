@@ -49,7 +49,7 @@ export class QueueService {
 		data.list.forEach(item => {
 			this.jobs.forEach(job => {
 				if ((item._id as Schema.ObjectId).equals(job._id)) {
-					item.progress = job.progress;
+					item.progress = Math.floor(job.fileProgress * 0.6 + job.previewProgress * 0.2 + job.uploadProgress * 0.2);
 				}
 			});
 		});
@@ -63,6 +63,10 @@ export class QueueService {
 				const queue: Queue = await this.queueManager.getQueueByProgress();
 
 				if (queue) {
+					queue.fileProgress = 0;
+					queue.previewProgress = 0;
+					queue.uploadProgress = 0;
+
 					this.processQueue(queue);
 				}
 			}
@@ -93,19 +97,22 @@ export class QueueService {
 						const video: string = convertedFile[0].filepath;
 						const thumbnails: Array<string> = convertedFile[0].screenshots;
 						const preview: string = convertedFile[1].preview;
+						const thumbnailsPromises: Array<Promise<string>> = new Array<Promise<string>>();
 
-						const promise1 = this.storageService.uploadLarge(original);
-						const promise2 = this.storageService.uploadLarge(video);
-						const promise3 = this.storageService.uploadLarge(preview);
-						const values = await Promise.all([promise1, promise2, promise3]);
+						for (let i = 0; i< thumbnails.length; i++) {
+							thumbnailsPromises.push(this.storageService.upload(thumbnails[i]));
+						}
+
+						const promiseOriginal = this.storageService.uploadLarge(original);
+						const promiseVideo = this.storageService.uploadLarge(video);
+						const promisePreview = this.storageService.uploadLarge(preview);
+						const values = await Promise.all([promiseOriginal, promiseVideo, promisePreview, Promise.all(thumbnailsPromises)]);
 						const originalPath: string =values[0];
 						const videoPath: string = values[1];
 						const previewPath: string = values[2];
-						const thumbnailsPath: Array<string> = new Array<string>();
+						const thumbnailsPath: Array<string> = values[3];
 
-						for (let i = 0; i < thumbnails.length; i++) {
-							thumbnailsPath.push(await this.storageService.upload(thumbnails[i]));
-						}
+						queue.uploadProgress = 100;
 
 						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
 
@@ -115,25 +122,6 @@ export class QueueService {
 
 						this.jobs.splice(this.jobs.indexOf(queue), 1);
 						this.nextTick();
-
-						// const video: Video = VideoParser.parserConvertedVideo(convertedFile, previewOptions, queue);
-						// if (!video.url) {
-						// 	// this.deleteTempFiles([queue.fileName]);
-						// 	reject('REQUEST_ERRORS.ERROR_CONVERTING_FILE');
-						// }
-						// this.saveVideoDetailFiles(video)
-						// 	.then((uploadedVideoData) => {
-						// 		const uploadedVideo = VideoParser.parseUploadedVideoDetails(uploadedVideoData, video);
-						// 		this.videoManager.createVideo(uploadedVideo)
-						// 			.then(() => {
-						// 				const files = uploadedVideoData.map((el) => el.val);
-						// 				files.push(queue.fileName);
-						// 				this.deleteTempFiles(files);
-						// 				resolve(queue)
-						// 			}).catch((err) => {
-						// 				reject(err);
-						// 			});
-						// 	}).catch((e) => reject(e));
 					}).catch((e) => {
 						console.log(e);
 						reject(e);
@@ -141,17 +129,10 @@ export class QueueService {
 			});
 		} catch(e) {
 			throw(e);
-		}
-		
-
-
-		// const videoPath: string = await this.storageService.uploadLarge(queue.path)
-		// const thumbnailPath: string = await this.storageService.upload(queue.thumbnail);
-
-		
+		}	
 	}
 
-	private updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath) {
+	private updateQueue(queue: Queue, originalPath: string, videoPath: string, previewPath: string, thumbnailsPath: Array<string>) {
 		const update = {
 			progress: 100,
 			path: videoPath,
@@ -183,8 +164,7 @@ export class QueueService {
 		});
 	}
 
-	private getFileDetails(queue) {
-		// console.log(queue);
+	private getFileDetails(queue: Queue) {
 		const fileName = queue.path.split('\\').pop().split('.').shift();
 		const outStream = `stream_${fileName}.mp4`;
 		const thumbnailOptions: ThumbnailOptions = {
@@ -200,6 +180,7 @@ export class QueueService {
 			maxHeight: CONFIG.thumbnailConfig.maxHeight,
 			endPreview: CONFIG.thumbnailConfig.end,
 		}
+
 		return {
 			fileName,
 			outStream,

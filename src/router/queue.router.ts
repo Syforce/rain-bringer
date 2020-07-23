@@ -7,7 +7,7 @@ import { QueueService } from '../util/queue.service';
 
 import { Queue } from '../model/queue.model';
 
-import { responseData } from 'src/util/model/responseData.model';
+import { ResponseData } from 'src/util/model/response-data.model';
 
 export class QueueRouter extends AbstractRouter {
     private waterfallGateService: WaterfallGateService;
@@ -46,14 +46,9 @@ export class QueueRouter extends AbstractRouter {
         const itemsPerPage: number = +request.query.itemsPerPage;
         const sortBy: string = request.query.sortBy as string;
         const sortOrder: number = +request.query.sortOrder;
-        
-        if (currentPage && itemsPerPage) {
-            const data: responseData = await this.queueManager.getQueuesPaginated(currentPage, itemsPerPage, sortBy, sortOrder);
+        const data: ResponseData = await this.queueManager.getQueues(currentPage, itemsPerPage, sortBy, sortOrder);
 
-            return this.queueService.applyProgressToJobs(data);
-        } else {
-            return this.queueManager.getAll();
-        }
+        return this.queueService.applyProgressToJobs(data);
     }
 
     private async createQueue(request: Request) {

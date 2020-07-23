@@ -4,7 +4,7 @@ import { QueueDatastore } from '../datastore/queue.datastore';
 
 import { Queue } from '../model/queue.model';
 
-import { responseData } from 'src/util/model/responseData.model';
+import { ResponseData } from 'src/util/model/response-data.model';
 
 export class QueueManager {
 	private iceContainerService: IceContainerService;
@@ -16,8 +16,35 @@ export class QueueManager {
 		this.queueDatastore = this.iceContainerService.getDatastore(QueueDatastore.name) as QueueDatastore;
 	}
 
-	public getAll(): Promise<Array<Queue>> {
-		return this.queueDatastore.getAll();
+	public async getQueues(currentPage: number, itemsPerPage: number, sortBy: string, sortOrder: number): Promise<ResponseData> {
+		let options: any = {};
+
+		if (currentPage && itemsPerPage) {
+			const skip = (currentPage - 1) * itemsPerPage;
+			const limit = itemsPerPage;
+
+			options.skip = skip;
+			options.limit = limit;
+
+			if (sortBy && sortOrder) {
+				let sortOptions: any;
+
+				sortOptions = {
+					[sortBy]: sortOrder
+				}
+
+				options.sort = sortOptions;
+			}
+		}
+
+		const list: Array<Queue> = await this.queueDatastore.getUnfinishedQueues(options);;
+		const total: number = await this.queueDatastore.countUnfinishedQueues();
+		const data: ResponseData = {
+			list: list,
+			total: total
+		}
+
+		return data;
 	}
 
 	public getQueueByProgress(): Promise<Queue> {
@@ -47,33 +74,5 @@ export class QueueManager {
 
 	public deleteQueues() {
 		return this.queueDatastore.removeAll();
-	}
-	
-	public async getQueuesPaginated(currentPage: number, itemsPerPage: number, sortBy?: string, sortOrder?: number): Promise<any> {
-		const skip = (currentPage - 1) * itemsPerPage;
-		let sortOptions: any;
-
-		// TODO: SQL Injection Error
-		if (sortBy && sortOrder) {
-			sortOptions = {
-				[sortBy]: sortOrder
-			}
-		}
-
-		const options = {
-			skip: skip,
-			limit: itemsPerPage,
-			sort: sortOptions
-		}
-
-		const list: Array<Queue> = await this.queueDatastore.getUnfinishedQueues(options);
-		const total: number = await this.queueDatastore.countUnfinishedQueues();
-		
-		const data: responseData = {
-			list: list,
-			total: total
-		}
-
-		return data;
 	}
 }

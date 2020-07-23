@@ -24,6 +24,9 @@ export interface Queue {
 	preview?: string;
 	thumbnails?: [string];
 	progress?: number;
+	fileProgress?: number;
+	previewProgress?: number;
+	uploadProgress?: number;
 	talent: string;
 	title: string;
 }

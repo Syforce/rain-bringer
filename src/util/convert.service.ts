@@ -75,18 +75,7 @@ export class ConvertService {
 
         end = end > completeDuration ? completeDuration : end;
         start = start < end ? start : 0;
-        // let start = startPreview && startPreview > 0 ? startPreview : 0;
-        // let end = 0;
-
-        // end = endPreview && endPreview > 0 ? endPreview : start + 5;
-        // const d = completeDuration - 1 > 0 ? completeDuration - 1 : 0;
-        // end = end > d ? d : end;
-
-        // if (startPreview !== null && startPreview !== undefined && startPreview !== NaN) {
-        //     start = start;
-        // } else {
-        //     start = end && end > 5 ? end - 5 : 0;
-        // }
+        
         return { start, end };
     }
 
@@ -108,7 +97,11 @@ export class ConvertService {
                     console.log('error on preview video conversion', err);
                     resolve('REQUEST_ERRORS.ERROR_CONVERTING_PREVIEW');
                 })
+                .on('progress', (progress) => {
+                    queue.previewProgress = Math.floor(progress.percent);
+                })
                 .on('end', () => {
+                    queue.previewProgress = 100;
                     resolve({ preview: `${temDir}preview_${outputPath}` });
                 })
                 .run();
@@ -128,10 +121,10 @@ export class ConvertService {
                     resolve('REQUEST_ERRORS.ERROR_CONVERTING_FILE');
                 })
                 .on('progress', (progress) => {
-                    queue.progress = Math.ceil(progress.percent);
-                    console.log(queue.progress);
+                    queue.fileProgress = Math.floor(progress.percent);
                 })
                 .on('end', () => {
+                    queue.fileProgress = 100;
                     console.log('process finished on stream');
                     resolve({ filepath: `${temDir}${outputPath}`, screenshots: thumbnails });
                 })

@@ -14,7 +14,7 @@ import { ThumbnailOptions } from './config/thumbnail-options.config';
 import { PreviewOptions } from './config/preview-options.config';
 
 import { CONFIG } from '../config';
-import { responseData } from './model/responseData.model';
+import { ResponseData } from './model/response-data.model';
 
 const temDir = CONFIG.fileStorage.destination;
 
@@ -45,7 +45,7 @@ export class QueueService {
 		this.getNextJob();
 	}
 
-	public applyProgressToJobs(data: responseData) {
+	public applyProgressToJobs(data: ResponseData) {
 		data.list.forEach(item => {
 			this.jobs.forEach(job => {
 				if ((item._id as Schema.ObjectId).equals(job._id)) {

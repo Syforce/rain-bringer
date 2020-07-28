@@ -53,7 +53,21 @@ export class ConvertService {
                 if (err) { return reject(err) }
 
                 const { duration, size, format_name } = videoDetails.format;
-                const aspect = videoDetails.streams[0].display_aspect_ratio;
+                let stream;
+
+                for (let i = 0; i < videoDetails.streams.length; i++) {
+                    if (videoDetails.streams[i].codec_type === 'video') {
+                        stream = videoDetails.streams[i];
+                        break;
+                    }
+                }
+
+                let aspect = stream.display_aspect_ratio;
+
+                if (aspect === 'N/A' || !aspect) {
+                    const ratio = this.gcd(stream.width, stream.height);
+                    aspect = `${stream.width / ratio}:${stream.height / ratio}`;
+                }
                 const format = format_name.split(',').shift();
 
                 return resolve({
@@ -64,6 +78,10 @@ export class ConvertService {
                 });
             });
         });
+    }
+
+    private gcd (width: number, height:number) {
+        return (height == 0) ? width : this.gcd (height, width%height);
     }
 
     private getPreviewDetails(details: PreviewOptions, videoDetails): PreviewSizes {

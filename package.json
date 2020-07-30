@@ -8,6 +8,7 @@
         "cloudinary": "^1.21.0",
         "fluent-ffmpeg": "^2.1.2",
         "ice-container": "^0.1.1",
+        "gravity-cloud": "0.0.1",
         "rock-gather": "0.0.6",
         "waterfall-gate": "0.0.17"
     },

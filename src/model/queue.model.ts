@@ -2,7 +2,7 @@ import { Schema } from 'ice-container';
 
 export const QueueSchema: Schema = new Schema({
 	path: String,
-	thumbnail: String,
+	selectedThumbnail: String,
 	original: String,
 	preview: String,
 	talent: String,
@@ -19,7 +19,7 @@ export const QueueSchema: Schema = new Schema({
 export interface Queue {
     _id?: string;
 	path: string;
-	thumbnail?: string;
+	selectedThumbnail?: string;
 	original?: string;
 	preview?: string;
 	thumbnails?: [string];

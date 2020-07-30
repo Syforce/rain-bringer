@@ -6,12 +6,17 @@ import { Queue } from '../model/queue.model';
 
 import { ResponseData } from 'src/util/model/response-data.model';
 
+import { GravityCloudService } from 'gravity-cloud';
+
 export class QueueManager {
 	private iceContainerService: IceContainerService;
 	private queueDatastore: QueueDatastore;
+	private gravityCloudService: GravityCloudService;
+
 
 	constructor() {
 		this.iceContainerService = IceContainerService.getInstance();
+		this.gravityCloudService = GravityCloudService.getInstance();
 
 		this.queueDatastore = this.iceContainerService.getDatastore(QueueDatastore.name) as QueueDatastore;
 	}
@@ -63,11 +68,16 @@ export class QueueManager {
 
 	public async createQueue(item: Queue, file, thumbnail): Promise<Queue> {
 		const filePath: string = file.path;
-		const thumbnailPath: string = thumbnail.path;
+		let thumbnailPath: string = thumbnail.path;
 
 		item.path = filePath;
-		item.thumbnail = thumbnailPath;
 
+		if ( !thumbnailPath.includes("http://res.cloudinary.com") ) {
+			const promise = this.gravityCloudService.upload(thumbnailPath);
+			const resolvedPromise: Array<string> = await Promise.all([promise]);
+            thumbnailPath = resolvedPromise[0];
+        }
+		item.selectedThumbnail = thumbnailPath;
 		const queue: Queue = await this.queueDatastore.create(item);
 		return queue;
 	}

@@ -84,7 +84,6 @@ export class QueueService {
 	private async convertQueue(queue: Queue) {
 		try {
 			const { outStream, thumbnailOptions, previewOptions } = this.getFileDetails(queue);
-
 			return new Promise<Queue>((resolve, reject) => {
 				this.convertService.createPreviewAndThumbnails(queue, outStream, thumbnailOptions, previewOptions)
 					.then(async (convertedFile) => {
@@ -114,7 +113,7 @@ export class QueueService {
 
 						queue.uploadProgress = 100;
 
-						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, '');
+						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, queue.selectedThumbnail);
 
 						this.removeFiles([original, video, preview, thumbnails]);
 
@@ -191,9 +190,12 @@ export class QueueService {
 
 
 	private createVideo(queue: Queue, path: string, preview: string, thumbnails: Array<string>, original: string , thumbnail: string) {
+
+		console.log('ceeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: ', thumbnail);
+
 		const data = JSON.stringify({
 			path: path,
-			// thumbnail: thumbnail,
+			selectedThumbnail: thumbnail,
 			thumbnails: thumbnails,
 			preview: preview,
 			original: original,

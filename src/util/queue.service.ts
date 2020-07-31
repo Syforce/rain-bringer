@@ -83,7 +83,7 @@ export class QueueService {
 
 	private async convertQueue(queue: Queue) {
 		try {
-			const { outStream, thumbnailOptions, previewOptions } = this.getFileDetails(queue);git a
+			const { outStream, thumbnailOptions, previewOptions } = this.getFileDetails(queue);
 			return new Promise<Queue>((resolve, reject) => {
 				this.convertService.createPreviewAndThumbnails(queue, outStream, thumbnailOptions, previewOptions)
 					.then(async (convertedFile) => {
@@ -96,28 +96,31 @@ export class QueueService {
 						const video: string = convertedFile[0].filepath;
 						const thumbnails: Array<string> = convertedFile[0].screenshots;
 						const preview: string = convertedFile[1].preview;
+						const selectedThumbnail: string = queue.selectedThumbnail;
 						const thumbnailsPromises: Array<Promise<string>> = new Array<Promise<string>>();
 
 						for (let i = 0; i< thumbnails.length; i++) {
 							thumbnailsPromises.push(this.storageService.upload(thumbnails[i]));
 						}
 
+						const promiseSelectedThumbnail = this.storageService.upload(selectedThumbnail);
 						const promiseOriginal = this.storageService.uploadLarge(original);
 						const promiseVideo = this.storageService.uploadLarge(video);
 						const promisePreview = this.storageService.uploadLarge(preview);
-						const values = await Promise.all([promiseOriginal, promiseVideo, promisePreview, Promise.all(thumbnailsPromises)]);
+						const values = await Promise.all([promiseOriginal, promiseVideo, promisePreview, Promise.all(thumbnailsPromises), promiseSelectedThumbnail]);
 						const originalPath: string =values[0];
 						const videoPath: string = values[1];
 						const previewPath: string = values[2];
 						const thumbnailsPath: Array<string> = values[3];
+						const selectedThumbnailPath: string = values[4];
 
 						queue.uploadProgress = 100;
 
-						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, queue.selectedThumbnail);
+						this.createVideo(queue, videoPath, previewPath, thumbnailsPath, originalPath, selectedThumbnailPath);
 
-						this.removeFiles([original, video, preview, thumbnails]);
+						this.removeFiles([original, video, preview, thumbnails, selectedThumbnail]);
 
-						this.updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath);
+						this.updateQueue(queue, originalPath, videoPath, previewPath, thumbnailsPath, selectedThumbnailPath);
 
 						this.jobs.splice(this.jobs.indexOf(queue), 1);
 						this.nextTick();
@@ -131,13 +134,14 @@ export class QueueService {
 		}	
 	}
 
-	private updateQueue(queue: Queue, originalPath: string, videoPath: string, previewPath: string, thumbnailsPath: Array<string>) {
+	private updateQueue(queue: Queue, originalPath: string, videoPath: string, previewPath: string, thumbnailsPath: Array<string>, selectedThumbnailPath: string) {
 		const update = {
 			progress: 100,
 			path: videoPath,
 			original: originalPath,
 			preview: previewPath,
-			thumbnails: thumbnailsPath
+			thumbnails: thumbnailsPath,
+			selectedThumbnail: selectedThumbnailPath
 		}
 
 		this.queueManager.updateQueue(queue, update);

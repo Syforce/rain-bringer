@@ -2,7 +2,8 @@
     "name": "rain-bringer",
     "version": "0.0.1",
     "scripts": {
-        "watch": "nodemon"
+        "watch": "nodemon",
+        "start": "ts-node ./src/app.ts"
     },
     "dependencies": {
         "cloudinary": "^1.21.0",

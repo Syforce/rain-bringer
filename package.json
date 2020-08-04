@@ -3,7 +3,8 @@
     "version": "0.0.1",
     "scripts": {
         "watch": "nodemon",
-        "start": "ts-node ./src/app.ts"
+        "start": "node ./dist/app.js",
+        "build": "tsc"
     },
     "dependencies": {
         "cloudinary": "^1.21.0",
